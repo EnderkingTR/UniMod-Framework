@@ -69,12 +69,53 @@ else()
     set(MINHOOK_TARGET minhook::minhook)
 endif()
 
+# 3. Dear ImGui (Docking/DX11/Win32)
+find_package(imgui CONFIG QUIET)
+if(NOT TARGET imgui)
+    message(STATUS "[UniMod] imgui not found via find_package, fetching via FetchContent...")
+    FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.91.8
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_GetProperties(imgui)
+    if(NOT imgui_POPULATED)
+        FetchContent_Populate(imgui)
+    endif()
+
+    add_library(imgui STATIC
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_demo.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
+    )
+    target_include_directories(imgui
+        PUBLIC
+            ${imgui_SOURCE_DIR}
+            ${imgui_SOURCE_DIR}/backends
+    )
+    target_link_libraries(imgui
+        PUBLIC
+            d3d11
+            dxgi
+            d3dcompiler
+            dwmapi
+    )
+    add_library(imgui::imgui ALIAS imgui)
+endif()
+
 # ---------------------------------------------------------------------------
 # Core Runtime Library (Static)
 # ---------------------------------------------------------------------------
 add_library(unimod_core STATIC
     src/core/logger.cpp
     src/core/core_runtime.cpp
+    src/memory/pattern_scanner.cpp
+    src/hooks/dx11_hook.cpp
 )
 
 target_include_directories(unimod_core
@@ -87,6 +128,11 @@ target_link_libraries(unimod_core
     PUBLIC
         spdlog::spdlog
         ${MINHOOK_TARGET}
+        imgui
+        d3d11
+        dxgi
+        d3dcompiler
+        dwmapi
 )
 
 unimod_set_target_warnings(unimod_core)
@@ -141,3 +187,10 @@ add_executable(phase2_test
 )
 add_dependencies(phase2_test dinput8)
 unimod_set_target_warnings(phase2_test)
+
+# Phase 3 Test
+add_executable(phase3_test
+    tests/phase3_test.cpp
+)
+target_link_libraries(phase3_test PRIVATE unimod_core)
+unimod_set_target_warnings(phase3_test)

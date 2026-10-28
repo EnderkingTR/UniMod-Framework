@@ -30,11 +30,14 @@ cmake --build build --config Release
 
 # Faz 2 Doğrulama Testi
 ./build/phase2_test.exe
+
+# Faz 3 Doğrulama Testi
+./build/phase3_test.exe
 ```
 
 ## Faz Durumu & Tamamlanan Bileşenler
 - [x] **Faz 1:** Modern CMake & `vcpkg.json` manifest yapılandırması, proje iskeleti, Spdlog renkli konsol & dosya sink, MinHook entegrasyonu.
 - [x] **Faz 2:** `dinput8.dll` Proxy Hijacking, chained export forwarding (`DirectInput8Create`), Loader Lock emniyetli asenkron thread bootstrap, thread-safe `CoreRuntime` yaşam döngüsü yöneticisi.
-- [ ] **Faz 3:** DirectX 11 SwapChain Present/ResizeBuffers kancası, ImGui arayüzü & AOB Pattern Scanner.
+- [x] **Faz 3:** DirectX 11 Dummy Device ile SwapChain VTable tespiti (Index 8: `Present`, Index 13: `ResizeBuffers`), Dear ImGui render ve Win32 `WndProc` girdi kancası, AOB Pattern Scanner & RIP-relative adres hesaplayıcısı.
 - [ ] **Faz 4:** `IEngineAdapter` arayüzü ve Mock Adapter ile tak-çıkar doğrulaması.
 - [ ] **Faz 5:** Sol2 ile Lua çalışma zamanı entegrasyonu & Hot-Reload mekanizması.
