@@ -5,6 +5,10 @@
 #include <cstring>
 #include <string>
 
+namespace sol {
+    class state;
+}
+
 namespace unimod::adapters::mock {
 
 struct MockGameContext {
@@ -35,6 +39,7 @@ public:
     virtual void OnInitRenderer() override;
     virtual void OnUpdate(float deltaTime) override;
     virtual void OnRenderOverlay() override;
+    virtual void OnBindScripting(sol::state& lua) override;
     virtual void OnDetach() override;
 
     MockGameContext* GetContext() noexcept { return &m_Context; }

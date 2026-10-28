@@ -108,15 +108,63 @@ if(NOT TARGET imgui)
     add_library(imgui::imgui ALIAS imgui)
 endif()
 
+# 4. Lua (v5.4.7)
+find_package(Lua CONFIG QUIET)
+if(NOT TARGET lua)
+    message(STATUS "[UniMod] Lua not found via find_package, fetching via FetchContent...")
+    FetchContent_Declare(
+        lua
+        GIT_REPOSITORY https://github.com/lua/lua.git
+        GIT_TAG v5.4.7
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_GetProperties(lua)
+    if(NOT lua_POPULATED)
+        FetchContent_Populate(lua)
+    endif()
+
+    file(GLOB LUA_ALL_C "${lua_SOURCE_DIR}/*.c")
+    list(FILTER LUA_ALL_C EXCLUDE REGEX ".*/lua\\.c$")
+    list(FILTER LUA_ALL_C EXCLUDE REGEX ".*/luac\\.c$")
+
+    add_library(lua STATIC ${LUA_ALL_C})
+    target_include_directories(lua PUBLIC ${lua_SOURCE_DIR})
+    add_library(lua::lua ALIAS lua)
+endif()
+
+# 5. Sol2 (v3.3.1)
+find_package(sol2 CONFIG QUIET)
+if(NOT TARGET sol2)
+    message(STATUS "[UniMod] sol2 not found via find_package, fetching via FetchContent...")
+    FetchContent_Declare(
+        sol2
+        GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+        GIT_TAG v3.3.1
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_GetProperties(sol2)
+    if(NOT sol2_POPULATED)
+        FetchContent_Populate(sol2)
+    endif()
+
+    add_library(sol2 INTERFACE)
+    target_include_directories(sol2 INTERFACE ${sol2_SOURCE_DIR}/include)
+    target_compile_definitions(sol2 INTERFACE SOL_USE_STD_OPTIONAL=1)
+    target_link_libraries(sol2 INTERFACE lua)
+    add_library(sol2::sol2 ALIAS sol2)
+endif()
+
 # ---------------------------------------------------------------------------
 # Core Runtime Library (Static)
 # ---------------------------------------------------------------------------
 add_library(unimod_core STATIC
-    src/core/logger.cpp
-    src/core/core_runtime.cpp
-    src/memory/pattern_scanner.cpp
-    src/hooks/dx11_hook.cpp
-    src/adapters/adapter_manager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/core_runtime.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/memory/pattern_scanner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/hooks/dx11_hook.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/adapters/adapter_manager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/scripting/bindings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/scripting/lua_engine.cpp
 )
 
 target_include_directories(unimod_core
@@ -130,6 +178,8 @@ target_link_libraries(unimod_core
         spdlog::spdlog
         ${MINHOOK_TARGET}
         imgui
+        sol2
+        lua
         d3d11
         dxgi
         d3dcompiler
@@ -144,8 +194,8 @@ unimod_set_target_warnings(unimod_core)
 set(DINPUT8_DEF "${CMAKE_CURRENT_SOURCE_DIR}/proxy/dinput8/dinput8.def")
 
 add_library(dinput8 SHARED
-    proxy/dinput8/dllmain.cpp
-    proxy/dinput8/dinput8_proxy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/proxy/dinput8/dllmain.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/proxy/dinput8/dinput8_proxy.cpp
     ${DINPUT8_DEF}
 )
 
@@ -177,29 +227,29 @@ unimod_set_target_warnings(dinput8)
 # ---------------------------------------------------------------------------
 # Phase 1 Test
 add_executable(phase1_test
-    tests/phase1_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/phase1_test.cpp
 )
 target_link_libraries(phase1_test PRIVATE unimod_core)
 unimod_set_target_warnings(phase1_test)
 
 # Phase 2 Test
 add_executable(phase2_test
-    tests/phase2_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/phase2_test.cpp
 )
 add_dependencies(phase2_test dinput8)
 unimod_set_target_warnings(phase2_test)
 
 # Phase 3 Test
 add_executable(phase3_test
-    tests/phase3_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/phase3_test.cpp
 )
 target_link_libraries(phase3_test PRIVATE unimod_core)
 unimod_set_target_warnings(phase3_test)
 
 # Phase 4 Test
 add_executable(phase4_test
-    tests/phase4_test.cpp
-    adapters/mock_adapter/mock_adapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/phase4_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/adapters/mock_adapter/mock_adapter.cpp
 )
 target_include_directories(phase4_test
     PRIVATE
@@ -207,3 +257,15 @@ target_include_directories(phase4_test
 )
 target_link_libraries(phase4_test PRIVATE unimod_core)
 unimod_set_target_warnings(phase4_test)
+
+# Phase 5 Test
+add_executable(phase5_test
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/phase5_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/adapters/mock_adapter/mock_adapter.cpp
+)
+target_include_directories(phase5_test
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/adapters/mock_adapter
+)
+target_link_libraries(phase5_test PRIVATE unimod_core)
+unimod_set_target_warnings(phase5_test)

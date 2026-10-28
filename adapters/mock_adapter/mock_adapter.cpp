@@ -1,6 +1,7 @@
 #include "mock_adapter.hpp"
 #include <unimod/core/logger.hpp>
 #include <imgui.h>
+#include <sol/sol.hpp>
 
 namespace unimod::adapters::mock {
 
@@ -73,6 +74,31 @@ void MockAdapter::OnRenderOverlay() {
         }
     }
     ImGui::End();
+}
+
+void MockAdapter::OnBindScripting(sol::state& lua) {
+    auto mockTable = lua.create_named_table("mock_engine");
+
+    mockTable["get_health"] = [this]() -> int32_t {
+        return m_Context.playerHealth;
+    };
+    mockTable["set_health"] = [this](int32_t hp) {
+        m_Context.playerHealth = hp;
+    };
+    mockTable["get_speed"] = [this]() -> float {
+        return m_Context.moveSpeed;
+    };
+    mockTable["set_speed"] = [this](float speed) {
+        m_Context.moveSpeed = speed;
+    };
+    mockTable["set_god_mode"] = [this](bool enable) {
+        m_Context.godMode = enable;
+    };
+    mockTable["get_name"] = [this]() -> std::string {
+        return m_Context.playerName;
+    };
+
+    UNIMOD_LOG_INFO("MockAdapter: Bound 'mock_engine' API into Lua runtime.");
 }
 
 void MockAdapter::OnDetach() {

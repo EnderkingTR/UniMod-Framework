@@ -12,8 +12,8 @@ function(unimod_set_target_warnings TARGET_NAME)
         target_compile_options(${TARGET_NAME} PRIVATE
             -Wall
             -Wextra
-            -Wpedantic
             -Wno-unused-parameter
+            -Wno-template-body
             $<$<CONFIG:Release>:-O3>
         )
     endif()

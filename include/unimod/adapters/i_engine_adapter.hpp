@@ -1,5 +1,9 @@
 #pragma once
 
+namespace sol {
+    class state;
+}
+
 namespace unimod::adapters {
 
 /**
@@ -51,6 +55,13 @@ public:
      * Renders adapter-specific diagnostic panels, cheat menus, and object inspectors.
      */
     virtual void OnRenderOverlay() = 0;
+
+    /**
+     * @brief Called when Lua scripting runtime binds engine-specific types and functions.
+     */
+    virtual void OnBindScripting(sol::state& lua) {
+        (void)lua;
+    }
 
     /**
      * @brief Called during framework shutdown or adapter unloading.
