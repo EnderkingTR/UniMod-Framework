@@ -116,6 +116,7 @@ add_library(unimod_core STATIC
     src/core/core_runtime.cpp
     src/memory/pattern_scanner.cpp
     src/hooks/dx11_hook.cpp
+    src/adapters/adapter_manager.cpp
 )
 
 target_include_directories(unimod_core
@@ -194,3 +195,15 @@ add_executable(phase3_test
 )
 target_link_libraries(phase3_test PRIVATE unimod_core)
 unimod_set_target_warnings(phase3_test)
+
+# Phase 4 Test
+add_executable(phase4_test
+    tests/phase4_test.cpp
+    adapters/mock_adapter/mock_adapter.cpp
+)
+target_include_directories(phase4_test
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/adapters/mock_adapter
+)
+target_link_libraries(phase4_test PRIVATE unimod_core)
+unimod_set_target_warnings(phase4_test)
