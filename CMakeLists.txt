@@ -70,10 +70,11 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
-# Core Runtime Library
+# Core Runtime Library (Static)
 # ---------------------------------------------------------------------------
 add_library(unimod_core STATIC
     src/core/logger.cpp
+    src/core/core_runtime.cpp
 )
 
 target_include_directories(unimod_core
@@ -91,15 +92,52 @@ target_link_libraries(unimod_core
 unimod_set_target_warnings(unimod_core)
 
 # ---------------------------------------------------------------------------
-# Phase 1 Test & Validation Executable
+# Proxy DLL Target: dinput8.dll
 # ---------------------------------------------------------------------------
-add_executable(phase1_test
-    tests/phase1_test.cpp
+set(DINPUT8_DEF "${CMAKE_CURRENT_SOURCE_DIR}/proxy/dinput8/dinput8.def")
+
+add_library(dinput8 SHARED
+    proxy/dinput8/dllmain.cpp
+    proxy/dinput8/dinput8_proxy.cpp
+    ${DINPUT8_DEF}
 )
 
-target_link_libraries(phase1_test
+target_include_directories(dinput8
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/proxy/dinput8
+)
+
+target_link_libraries(dinput8
     PRIVATE
         unimod_core
 )
 
+set_target_properties(dinput8 PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "dinput8"
+)
+
+if(MSVC)
+    target_link_options(dinput8 PRIVATE "/DEF:${DINPUT8_DEF}")
+else()
+    target_link_options(dinput8 PRIVATE "${DINPUT8_DEF}")
+endif()
+
+unimod_set_target_warnings(dinput8)
+
+# ---------------------------------------------------------------------------
+# Test Targets
+# ---------------------------------------------------------------------------
+# Phase 1 Test
+add_executable(phase1_test
+    tests/phase1_test.cpp
+)
+target_link_libraries(phase1_test PRIVATE unimod_core)
 unimod_set_target_warnings(phase1_test)
+
+# Phase 2 Test
+add_executable(phase2_test
+    tests/phase2_test.cpp
+)
+add_dependencies(phase2_test dinput8)
+unimod_set_target_warnings(phase2_test)

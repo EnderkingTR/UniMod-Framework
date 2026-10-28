@@ -27,10 +27,14 @@ cmake --build build --config Release
 
 # Faz 1 Doğrulama Testi
 ./build/phase1_test.exe
+
+# Faz 2 Doğrulama Testi
+./build/phase2_test.exe
 ```
 
-## Faz 1 Tamamlanan Bileşenler
-- [x] Modern CMake & `vcpkg.json` manifest yapılandırması
-- [x] Proje dizin hiyerarşisi (`include/unimod/`, `src/`, `proxy/`, `adapters/`, `assets/scripts/`)
-- [x] Spdlog asenkron renkli konsol ve dosya sink (`unimod.log`) sarmalayıcısı
-- [x] MinHook entegrasyonu ve C++20 standart doğrulaması
+## Faz Durumu & Tamamlanan Bileşenler
+- [x] **Faz 1:** Modern CMake & `vcpkg.json` manifest yapılandırması, proje iskeleti, Spdlog renkli konsol & dosya sink, MinHook entegrasyonu.
+- [x] **Faz 2:** `dinput8.dll` Proxy Hijacking, chained export forwarding (`DirectInput8Create`), Loader Lock emniyetli asenkron thread bootstrap, thread-safe `CoreRuntime` yaşam döngüsü yöneticisi.
+- [ ] **Faz 3:** DirectX 11 SwapChain Present/ResizeBuffers kancası, ImGui arayüzü & AOB Pattern Scanner.
+- [ ] **Faz 4:** `IEngineAdapter` arayüzü ve Mock Adapter ile tak-çıkar doğrulaması.
+- [ ] **Faz 5:** Sol2 ile Lua çalışma zamanı entegrasyonu & Hot-Reload mekanizması.
